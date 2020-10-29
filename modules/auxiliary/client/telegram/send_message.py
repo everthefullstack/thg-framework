@@ -1,57 +1,29 @@
 ##
-# This module requires THG: https://darkcode0x00.com/download
-# Current source: https://github.com/darkcode357/thg-framework
+# This module requires Metasploit: https://metasploit.com/download
+# Current source: https://github.com/rapid7/metasploit-framework
 ##
-from THG.Model.BaseXmodeClass.BaseMod import BaseMod,BaseOption
-import requests
-from THG.Model.Xmode.auxiliary.Web import Url
 
-class Exploit(BaseMod):
-  def __init__(self):
-    super(Exploit, self).__init__()
-    self.update_info({
-      "name": "Telegram Message Client",
-      "description": """ This module will send a Telegram message to given chat ID with the
+require 'uri'
+
+class MetasploitModule < Msf::Auxiliary
+  def initialize
+    super(
+    'Name' => 'Telegram Message Client',
+    'Description' => %q(
+            This module will send a Telegram message to given chat ID with the
             given bot token. Please refer to the module documentation for info
-            on how to retrieve the bot token and corresponding chat ID values.""",
-      "author": ["darkcode0x00"],
-      "references": [
-        "telegram api",
-        ],
-      "disclosure_date": "2020, 9, 5",
-      "service_name": "torch",
-      "service_version": "telegram send bot msg 0.1",
-
-      })
-    self.register_options([
-                BaseOption(name='BOT_TOKEN',required=True, description='Telegram BOT token', value=''),
-                BaseOption(name='CHAT_ID', required=True,description='Chat ID for the BOT', value=''),
-                BaseOption(name='MSG', required=True, description='Message content', value='')])
-
-
-  def check(self):
-      url_check = "https://api.telegram.org"
-      if Url(url_check).check_url_open()[:3] == str(200):
-          print("url ok")
-      else:
-          print(Url(url_check).check_url_open())
-  
-  def exploit(self):
-      token = self.options.get_option('BOT_TOKEN')
-      Chat_id = self.options.get_option('CHAT_ID')
-      MSG = self.options.get_option("MSG")
-      print(MSG)
-      url = f'https://api.telegram.org/bot{token}/sendMessage'
-      data = {'chat_id':f'{Chat_id}', 'text': f'{MSG}'}
-      requests.post(url, data).json()
-      print(f"mensagem envida =>[{MSG}]")  
-
-'''
-
+            on how to retrieve the bot token and corresponding chat ID values.
+        ),
+    'Author' => 'Ege Balcı <egebalci[at]pm.me>', # Aka @egeblc of https://pentest.blog
+    'License' => MSF_LICENSE,
+    )
 
     register_options(
       [
-        
+        OptString.new('BOT_TOKEN', [true, 'Telegram BOT token', '']),
+        OptInt.new('CHAT_ID', [true, 'Chat ID for the BOT', '']),
+        OptString.new('MSG', [true, 'Message content', 'New session opened!']),
+        OptEnum.new('FORMATTING', [true, 'Message formating option (Markdown|MarkdownV2|HTML)', 'Markdown', [ 'Markdown', 'MarkdownV2', 'HTML']]),
       ], self.class
     )
   end
@@ -69,6 +41,7 @@ class Exploit(BaseMod):
   end
 
   def run
+    uri = URI("https://api.telegram.org/bot#{bot_token}/sendMessage")
     params = { chat_id: datastore['CHAT_ID'], parse_mode: formatting, text: message }
     uri.query = URI.encode_www_form(params)
     res = Net::HTTP.get_response(uri)
@@ -81,4 +54,3 @@ class Exploit(BaseMod):
     end
   end
 end
-'''
